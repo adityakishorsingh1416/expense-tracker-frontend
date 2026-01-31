@@ -1,8 +1,14 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { fetchExpenses, createExpense, removeExpense } from "./api";
+
 
 // API base URL
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+const API_BASE = import.meta.env.VITE_API_URL;
+
+if (!API_BASE) {
+  console.error("❌ VITE_API_URL is not defined");
+}
+
 
 export default function App() {
   const [expenses, setExpenses] = useState([]);
@@ -15,52 +21,50 @@ export default function App() {
   }, []);
 
   const loadExpenses = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get(`${API_BASE}/expenses`);
-      setExpenses(res.data);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to load expenses");
-    } finally {
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+  try {
+    const res = await fetchExpenses();
+    setExpenses(res.data);
+  } catch (err) {
+    console.error(err);
+    setError("Failed to load expenses");
+  } finally {
+    setLoading(false);
+  }
+};
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleAdd = async (e) => {
-    e.preventDefault();
-    setError("");
+  e.preventDefault();
+  setError("");
 
-    if (!form.title.trim() || !form.amount) {
-      setError("Please provide title & amount");
-      return;
-    }
+  if (!form.title.trim() || !form.amount) {
+    setError("Please provide title & amount");
+    return;
+  }
 
-    try {
-      const res = await axios.post(`${API_BASE}/expenses`, {
-        ...form,
-        amount: Number(form.amount),
-      });
+  try {
+    const res = await createExpense({
+      ...form,
+      amount: Number(form.amount),
+    });
+    setExpenses([res.data, ...expenses]);
+    setForm({ title: "", amount: "", category: "General" });
+  } catch (err) {
+    console.error(err);
+    setError("Failed to add expense");
+  }
+};
+const handleDelete = async (id) => {
+  try {
+    await removeExpense(id);
+    setExpenses(expenses.filter((x) => x._id !== id));
+  } catch (err) {
+    console.error(err);
+    setError("Failed to delete expense");
+  }
+};
 
-      setExpenses([res.data, ...expenses]);
-      setForm({ title: "", amount: "", category: "General" });
-    } catch (err) {
-      console.error(err);
-      setError("Failed to add expense");
-    }
-  };
-
-  const handleDelete = async (id) => {
-    try {
-      await axios.delete(`${API_BASE}/expenses/${id}`);
-      setExpenses(expenses.filter((x) => x._id !== id));
-    } catch (err) {
-      console.error(err);
-      setError("Failed to delete expense");
-    }
-  };
 
   const total = expenses.reduce((a, b) => a + Number(b.amount || 0), 0);
 
