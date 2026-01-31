@@ -33,6 +33,13 @@ export default function App() {
   }
 };
 
+const handleChange = (e) => {
+  setForm({
+    ...form,
+    [e.target.name]: e.target.value,
+  });
+};
+
 
   const handleAdd = async (e) => {
   e.preventDefault();
