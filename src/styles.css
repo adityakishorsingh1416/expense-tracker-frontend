@@ -14,10 +14,9 @@ body {
   color: #f4f4f4;
 }
 
-/* Add Pixel Font */
 @import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
 
-/* Wrapper */
+
 .app-wrapper {
   max-width: 780px;
   margin: auto;
